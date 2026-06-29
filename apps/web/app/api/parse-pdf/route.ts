@@ -5,6 +5,9 @@ import * as pdfjsLib from "pdfjs-dist"
 import { extractDocx } from "@/lib/utils/admin/questionnaires/docx.extractor"
 import { parseDocxToRows } from "@/lib/utils/admin/questionnaires/docx.parser"
 
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+
 export async function POST(req: NextRequest) {
   const formData = await req.formData()
   const uploadedFile = formData.get("file") as File
