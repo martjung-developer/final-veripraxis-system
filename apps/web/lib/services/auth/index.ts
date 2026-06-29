@@ -236,3 +236,32 @@ export async function signOut(): Promise<void> {
     window.location.href = '/api/auth/signout'
   }
 }
+
+// ── sendOtp ───────────────────────────────────────────────────────────────────
+
+export async function sendOtp(email: string): Promise<AuthResult> {
+  const supabase = createClient()
+  const { error } = await supabase.auth.resend({
+    type: 'signup',
+    email,
+  })
+  if (error) {
+    return { success: false, error: error.message }
+  }
+  return { success: true }
+}
+
+// ── verifyOtp ─────────────────────────────────────────────────────────────────
+
+export async function verifyOtp(email: string, token: string): Promise<AuthResult> {
+  const supabase = createClient()
+  const { error } = await supabase.auth.verifyOtp({
+    email,
+    token,
+    type: 'signup',
+  })
+  if (error) {
+    return { success: false, error: error.message }
+  }
+  return { success: true }
+}
