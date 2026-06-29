@@ -1,7 +1,8 @@
 // app/api/parse-pdf/route.ts
 import type { NextRequest } from "next/server"
 import { NextResponse } from "next/server"
-import * as pdfjsLib from "pdfjs-dist"
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const pdfjsLib = require("pdfjs-dist/legacy/build/pdf.js")
 import { extractDocx } from "@/lib/utils/admin/questionnaires/docx.extractor"
 import { parseDocxToRows } from "@/lib/utils/admin/questionnaires/docx.parser"
 
