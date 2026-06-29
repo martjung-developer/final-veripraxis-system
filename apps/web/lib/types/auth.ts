@@ -1,4 +1,6 @@
 // lib/types/auth.ts
+
+// Keep faculty in the type since your DB CHECK constraint still has it
 export type UserRole = 'student' | 'admin' | 'faculty'
 
 export interface Profile {
@@ -26,26 +28,31 @@ export interface AuthUser {
   profile: Profile | null
 }
 
-// ── Role helpers ──────────────────────────────────────────────────────────────
+// ── Role helpers ─────────────────────────────────────────
 
-export const isStudent        = (role: UserRole) => role === 'student'
-export const isFaculty        = (role: UserRole) => role === 'faculty'
-export const isAdmin          = (role: UserRole) => role === 'admin'
-export const canTakeExams     = (role: UserRole) => role === 'student' || role === 'faculty'
-export const canManageContent = (role: UserRole) => role === 'faculty' || role === 'admin'
+export const isAdmin   = (role: UserRole) => role === 'admin'
+export const isStudent = (role: UserRole) => role === 'student'
+export const isFaculty = (role: UserRole) => role === 'faculty'
+
+export const canTakeExams      = (role: UserRole) => role === 'student'
+export const canManageContent  = (role: UserRole) => role === 'admin' || role === 'faculty'
 
 export function getDashboardByRole(role: UserRole): string {
-  switch (role) {
-    case 'admin':   return '/faculty/dashboard' 
-    case 'faculty': return '/faculty/dashboard'
-    case 'student': return '/student/dashboard'
-  }
+  if (role === 'student') {return '/student/dashboard'}
+  if (role === 'faculty') {return '/faculty/dashboard'}
+  return '/admin/dashboard'
 }
 
-// Signup form shows only Student and Faculty
-export type SignupRole = Extract<UserRole, 'student' | 'faculty'>
+// ── Signup roles (UI only) ───────────────────────────────
+// Faculty is the signup label, but stored as 'admin' in DB
 
-export const SIGNUP_ROLES: { value: SignupRole; label: string; description: string }[] = [
+export type SignupRole = 'student' | 'faculty' | 'admin'
+
+export const SIGNUP_ROLES: {
+  value:       SignupRole
+  label:       string
+  description: string
+}[] = [
   {
     value:       'student',
     label:       'Student',
@@ -55,5 +62,10 @@ export const SIGNUP_ROLES: { value: SignupRole; label: string; description: stri
     value:       'faculty',
     label:       'Faculty',
     description: 'Managing question banks and review materials',
+  },
+  {
+    value:       'admin',
+    label:       'Admin',
+    description: 'Managing school-level operations and user administration',
   },
 ]

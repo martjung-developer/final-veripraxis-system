@@ -3,7 +3,9 @@ import { redirect }     from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import StudentSidebar   from '@/components/dashboard/student/StudentSidebar'
 import StudentTopbar    from '@/components/dashboard/student/StudentTopbar'
+import { AuthProvider } from '@/lib/context/AuthContext'
 import type { Profile } from '@/lib/types/auth'
+import { fetchProfileByUserId } from '@/lib/auth/profile'
 
 export default async function StudentLayout({
   children,
@@ -11,45 +13,67 @@ export default async function StudentLayout({
   children: React.ReactNode
 }) {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
 
-  if (!user) redirect('/login')
+  // Use getUser() — more secure than getSession() which only reads the cookie
+  const { data: { user }, error } = await supabase.auth.getUser()
+
+  if (error || !user) {
+    redirect('/login')
+  }
+
+  const authProfile = await fetchProfileByUserId(supabase, user.id)
+
+  // Role mismatch → send to their actual dashboard, not /unauthorized (which doesn't exist)
+  if (!authProfile) {
+    redirect('/login')
+  }
+  if (authProfile.role !== 'student') {
+    if (authProfile.role === 'admin' || authProfile.role === 'faculty') {
+      redirect('/admin/dashboard')
+    }
+    redirect('/login')
+  }
 
   const profile: Profile = {
-    id:         user.id,
-    email:      user.email ?? '',
-    full_name:  user.user_metadata?.full_name ?? 'Student',
-    role:       (user.user_metadata?.role ?? 'student') as 'student',
-    avatar_url: null,
+    id:         authProfile.id,
+    email:      authProfile.email,
+    full_name:  authProfile.full_name ?? 'Student',
+    role:       'student',
+    avatar_url: authProfile.avatar_url ?? null,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   }
 
   return (
-    <div style={{
-      display:    'flex',
-      minHeight:  '100vh',
-      background: '#eef2f7',   /* cool-blue tinted light grey — not stark white, not dark */
-      fontFamily: "'Plus Jakarta Sans', 'DM Sans', sans-serif",
-    }}>
-      <StudentSidebar profile={profile} />
+    // AuthProvider wraps everything so any client component in this
+    // subtree can call useUser() safely.
+    <AuthProvider>
       <div style={{
-        flex:          1,
-        display:       'flex',
-        flexDirection: 'column',
-        overflow:      'hidden',
-        minWidth:      0,
-        background:    '#eef2f7',
+        display:    'flex',
+        minHeight:  '100vh',
+        background: 'var(--dashboard-bg)',
+        fontFamily: "'Plus Jakarta Sans', 'DM Sans', sans-serif",
       }}>
-        <StudentTopbar profile={profile} />
-        <main style={{
-          flex:      1,
-          padding:   '1.75rem 2rem',
-          overflowY: 'auto',
+        <StudentSidebar profile={profile} />
+        <div style={{
+          flex:          1,
+          display:       'flex',
+          flexDirection: 'column',
+          overflow:      'hidden',
+          minWidth:      0,
+          background:    'var(--dashboard-bg)',
         }}>
-          {children}
-        </main>
+          <StudentTopbar profile={profile} userId={user.id} />
+          <main style={{
+            flex:      1,
+            padding:   '1.5rem 2rem',
+            overflowY: 'auto',
+            minWidth:  0,
+          }}>
+            {children}
+          </main>
+        </div>
       </div>
-    </div>
+    </AuthProvider>
   )
 }

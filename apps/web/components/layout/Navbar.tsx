@@ -10,9 +10,9 @@ import styles from '@/app/page.module.css'
 
 const NAV_LINKS = [
   { label: 'Home',     href: '/'         },
+  { label: 'About',  href: '/about'  },
   { label: 'Features', href: '/features' },
   { label: 'Programs', href: '/programs' },
-  { label: 'Pricing',  href: '/pricing'  },
   { label: 'Help',     href: '/help'     },
 ]
 
@@ -69,8 +69,8 @@ export default function Navbar() {
 
         {/* Desktop CTA buttons */}
         <div className={styles.navActions}>
-          <Link href="/login"    className={styles.navLoginBtn}>Log in</Link>
-          <Link href="/signup" className={styles.navSignupBtn}>Sign Up</Link>
+          <Link href="/role-select" prefetch={true} className={styles.navLoginBtn}>Log in</Link>
+          <Link href="/signup" prefetch={true} className={styles.navSignupBtn}>Sign Up</Link>
 
           {/* Hamburger (mobile) */}
           <button
@@ -99,8 +99,8 @@ export default function Navbar() {
           </Link>
         ))}
         <div className={styles.mobileDivider} />
-        <Link href="/login"    className={styles.mobileNavLink}   onClick={() => setMobileOpen(false)}>Log in</Link>
-        <Link href="/register" className={styles.mobileSignupBtn} onClick={() => setMobileOpen(false)}>Sign Up Free</Link>
+        <Link href="/role-select" prefetch={true} className={styles.mobileNavLink} onClick={() => setMobileOpen(false)}>Log in</Link>
+        <Link href="/signup" prefetch={true} className={styles.mobileSignupBtn} onClick={() => setMobileOpen(false)}>Sign Up</Link>
       </div>
     </header>
   )

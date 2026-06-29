@@ -1,19 +1,22 @@
-// lib/auth/actions.ts
+// app/lib/auth/actions.ts
 'use server'
 
 import type { AuthError } from '@supabase/supabase-js'
 import { redirect }       from 'next/navigation'
-
-import { createClient }                  from '@/lib/supabase/server'
-import type { Database }                 from '@/lib/types/database'
-import type { SignupRole, UserRole }      from '@/lib/types/auth'
-import { getDashboardByRole }            from '@/lib/types/auth'
-
-type StudentsInsert = Database['public']['Tables']['students']['Insert']
+import { createClient }   from '@/lib/supabase/server'
+import type { SignupRole, UserRole } from '@/lib/types/auth'
+import { getDashboardByRole }        from '@/lib/types/auth'
 
 export type AuthResult =
   | { success: true;  redirectTo: string }
   | { success: false; error: string }
+
+function normalizeRole(role: string): UserRole {
+  if (role === 'faculty') { return 'faculty' }
+  if (role === 'student') { return 'student' }
+  if (role === 'admin')   { return 'admin' }
+  return 'student'
+}
 
 export async function signUp(
   fullName:   string,
@@ -21,7 +24,8 @@ export async function signUp(
   password:   string,
   signupRole: SignupRole,
 ): Promise<AuthResult> {
-  const supabase = await createClient()
+  const supabase       = await createClient()
+  const normalizedRole = normalizeRole(signupRole)
 
   const { error } = await supabase.auth.signUp({
     email,
@@ -29,13 +33,13 @@ export async function signUp(
     options: {
       data: {
         full_name: fullName,
-        role:      signupRole,
+        role:      normalizedRole,
       },
     },
   })
 
-  if (error) return { success: false, error: formatError(error) }
-  return { success: true, redirectTo: getDashboardByRole(signupRole) }
+  if (error) { return { success: false, error: formatError(error) } }
+  return { success: true, redirectTo: getDashboardByRole(normalizedRole) }
 }
 
 export async function signIn(
@@ -44,20 +48,16 @@ export async function signIn(
 ): Promise<AuthResult> {
   const supabase = await createClient()
 
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  })
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password })
 
-  if (error) return { success: false, error: formatError(error) }
+  if (error) { return { success: false, error: formatError(error) } }
 
-  const role       = (data.user?.user_metadata?.role ?? 'student') as UserRole
-  const redirectTo = getDashboardByRole(role)
+  const rawRole = (data.user?.user_metadata?.['role'] ?? 'student') as string
+  const role    = normalizeRole(rawRole)
 
-  return { success: true, redirectTo }
+  return { success: true, redirectTo: getDashboardByRole(role) }
 }
 
-// signOut runs server-side — use Next.js redirect(), NOT window.location
 export async function signOut(): Promise<void> {
   const supabase = await createClient()
   await supabase.auth.signOut()
@@ -66,13 +66,8 @@ export async function signOut(): Promise<void> {
 
 export async function resendVerification(email: string): Promise<AuthResult> {
   const supabase = await createClient()
-
-  const { error } = await supabase.auth.resend({
-    type: 'signup',
-    email,
-  })
-
-  if (error) return { success: false, error: formatError(error) }
+  const { error } = await supabase.auth.resend({ type: 'signup', email })
+  if (error) { return { success: false, error: formatError(error) } }
   return { success: true, redirectTo: '/verify-email' }
 }
 
@@ -83,28 +78,29 @@ export async function verifyOtp(
   const supabase = await createClient()
 
   const { data, error } = await supabase.auth.verifyOtp({
-    email,
-    token,
-    type: 'signup',
+    email, token, type: 'signup',
   })
 
-  if (error) return { success: false, error: formatError(error) }
+  if (error) { return { success: false, error: formatError(error) } }
 
-  const role = (data.user?.user_metadata?.role ?? 'student') as UserRole
+  const role = normalizeRole(data.user?.user_metadata?.['role'] ?? 'student')
 
-  if ((role === 'student' || role === 'faculty') && data.user) {
-    await supabase
+  // Only students get a row in the students table via this path.
+  // (The primary student insert path is the create-profile API route called
+  //  from signUpStudent in the client service.)
+  if (role === 'student' && data.user) {
+    const { error: insertError } = await supabase
       .from('students')
-      .insert({ id: data.user.id } as unknown as StudentsInsert)
-      .throwOnError()
+      .insert({ id: data.user.id })
+
+    // Ignore duplicate-key errors (row already exists from create-profile call)
+    if (insertError && !insertError.message.includes('duplicate')) {
+      return { success: false, error: insertError.message }
+    }
   }
 
   return { success: true, redirectTo: getDashboardByRole(role) }
 }
-
-// signInWithGoogle needs window.location so it must stay client-side.
-// Move this function to a separate file: lib/auth/client-actions.ts (no 'use server')
-// and import createBrowserClient from @supabase/ssr there.
 
 function formatError(error: AuthError): string {
   switch (error.message) {

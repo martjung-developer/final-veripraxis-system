@@ -3,13 +3,19 @@
 .sidebar {
   width: 232px;
   min-height: 100vh;
-  background: #0d1117;
+  background: #06192d;
   display: flex;
   flex-direction: column;
   position: sticky;
   top: 0;
   flex-shrink: 0;
   border-right: 1px solid rgba(255, 255, 255, 0.06);
+  transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+.sidebarCollapsed {
+  width: 64px;
 }
 
 /* ── Logo ── */
@@ -17,8 +23,34 @@
   padding: 1.5rem 1.25rem 1.125rem;
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 0.625rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  min-height: 70px;
+}
+
+/* Collapse toggle button */
+.collapseBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  color: var(--dashboard-sidebar-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+  /* When collapsed, center it inside the narrowed logoWrap */
+  margin-left: auto;
+}
+
+.collapseBtn:hover {
+  background: rgba(74, 127, 165, 0.18);
+  border-color: rgba(74, 127, 165, 0.35);
+  color: #7eb8d4;
 }
 
 /* ── Section Label ── */
@@ -29,6 +61,7 @@
   color: rgba(255, 255, 255, 0.28);
   letter-spacing: 0.1em;
   text-transform: uppercase;
+  white-space: nowrap;
 }
 
 /* ── Nav ── */
@@ -39,6 +72,24 @@
   flex-direction: column;
   gap: 1px;
   overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.navBadge {
+  margin-left: auto;
+  min-width:   18px;
+  height:      18px;
+  padding:     0 5px;
+  border-radius: 20px;
+  background:  #ef4444;
+  color:       #fff;
+  font-size:   0.65rem;
+  font-weight: 700;
+  display:     flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  flex-shrink: 0;
 }
 
 .navLink {
@@ -49,7 +100,7 @@
   border-radius: 8px;
   font-size: 0.8rem;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.45);
+  color: var(--dashboard-sidebar-muted);
   text-decoration: none;
   transition: all 0.15s ease;
   cursor: pointer;
@@ -58,11 +109,12 @@
   width: 100%;
   text-align: left;
   letter-spacing: 0.01em;
+  white-space: nowrap;
 }
 
 .navLink:hover {
   background: rgba(255, 255, 255, 0.06);
-  color: rgba(255, 255, 255, 0.85);
+  color: var(--dashboard-sidebar-text);
 }
 
 .navLinkActive {
@@ -76,8 +128,25 @@
   color: #7eb8d4;
 }
 
+/* Collapsed nav link — center the icon */
+.navLinkCollapsed .navBadge {
+  position:   absolute;
+  top:        4px;
+  right:      4px;
+  margin-left: 0;
+}
+
+.navLinkCollapsed {
+  position: relative;
+}
+
 .navIcon {
   flex-shrink: 0;
+}
+
+.navLabel {
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* ── Help card ── */
@@ -131,6 +200,13 @@
   display: flex;
   align-items: center;
   gap: 0.65rem;
+  transition: padding 0.25s ease;
+}
+
+/* Collapsed — center the avatar */
+.userWrapCollapsed {
+  justify-content: center;
+  padding: 0.875rem 0;
 }
 
 .avatar {
@@ -151,7 +227,7 @@
 .userName {
   font-size: 0.775rem;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.85);
+  color: var(--dashboard-sidebar-text);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -159,7 +235,7 @@
 
 .userRole {
   font-size: 0.65rem;
-  color: rgba(255, 255, 255, 0.3);
+  color: var(--dashboard-sidebar-muted);
   font-weight: 500;
 }
 

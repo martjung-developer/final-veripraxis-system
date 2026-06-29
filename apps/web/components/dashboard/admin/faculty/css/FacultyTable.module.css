@@ -1,0 +1,328 @@
+/* components/dashboard/admin/faculty/css/FacultyTable.module.css */
+
+/* ── Scroll wrapper ──────────────────────────────────────────────────────── */
+.wrapper {
+  overflow-x: auto;
+  border-radius: 12px;
+  border: 1px solid var(--admin-border);
+  background: var(--admin-card-bg);
+}
+
+/* ── Table ───────────────────────────────────────────────────────────────── */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: 'Plus Jakarta Sans', 'DM Sans', sans-serif;
+  min-width: 860px;
+}
+
+/* ── Head ────────────────────────────────────────────────────────────────── */
+.th {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--admin-text-muted);
+  background: var(--admin-card-bg);
+  border-bottom: 1px solid var(--admin-border);
+  white-space: nowrap;
+}
+
+.thActions {
+  width: 48px;
+}
+
+/* ── Body rows ───────────────────────────────────────────────────────────── */
+.tr {
+  border-bottom: 1px solid var(--admin-page-bg);
+  transition: background 0.12s;
+}
+
+.tr:last-child {
+  border-bottom: none;
+}
+
+.tr:hover {
+  background: var(--admin-card-bg);
+}
+
+.td {
+  padding: 0.875rem 1rem;
+  font-size: 0.82rem;
+  color: var(--admin-text);
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+/* ── Name cell ───────────────────────────────────────────────────────────── */
+.tdName {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 7px;
+  background: linear-gradient(135deg, #1e3a5f, #2563eb);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.62rem;
+  font-weight: 800;
+  color: #bfdbfe;
+  flex-shrink: 0;
+  letter-spacing: -0.02em;
+}
+
+.name {
+  font-weight: 600;
+  color: var(--admin-text);
+}
+
+/* ── ID code ─────────────────────────────────────────────────────────────── */
+.idCode {
+  font-family: 'Fira Code', 'Cascadia Code', monospace;
+  font-size: 0.78rem;
+  background: var(--admin-page-bg);
+  padding: 0.2rem 0.5rem;
+  border-radius: 5px;
+  color: var(--admin-text);
+  letter-spacing: 0.03em;
+}
+
+/* ── Email ───────────────────────────────────────────────────────────────── */
+.email {
+  color: #475569;
+}
+
+/* ── Dept/program ────────────────────────────────────────────────────────── */
+.dept {
+  color: var(--admin-text-muted);
+}
+
+/* ── Role badge ──────────────────────────────────────────────────────────── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.6rem;
+  border-radius: 99px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.badgeProfessional {
+  background: rgba(99, 102, 241, 0.1);
+  color: #4f46e5;
+}
+
+.badgeMajor {
+  background: rgba(16, 185, 129, 0.1);
+  color: #059669;
+}
+
+.badgeMinor {
+  background: rgba(245, 158, 11, 0.1);
+  color: #d97706;
+}
+
+.badgeNone {
+  color: var(--admin-text-muted);
+  font-size: 0.82rem;
+}
+
+/* ── Status badge ────────────────────────────────────────────────────────── */
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 99px;
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.statusActive {
+  background: rgba(16, 185, 129, 0.1);
+  color: #059669;
+}
+
+.statusInactive {
+  background: rgba(239, 68, 68, 0.08);
+  color: #dc2626;
+}
+
+/* ── Date ────────────────────────────────────────────────────────────────── */
+.date {
+  color: var(--admin-text-muted);
+  font-size: 0.78rem;
+}
+
+/* ── Actions ─────────────────────────────────────────────────────────────── */
+.tdActions {
+  text-align: right;
+}
+
+.actionRow {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  justify-content: flex-end;
+}
+
+.iconAction {
+  width: 30px;
+  height: 30px;
+  border-radius: 7px;
+  border: 1px solid var(--admin-border);
+  background: var(--admin-card-bg);
+  color: var(--admin-text-muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.12s;
+}
+
+.iconAction:hover {
+  background: var(--admin-page-bg);
+  border-color: #cbd5e1;
+  color: var(--admin-text);
+}
+
+.iconActionDanger {
+  color: #dc2626;
+  border-color: #fecaca;
+}
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(2, 6, 23, 0.38);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 90;
+  padding: 1rem;
+}
+
+.modalCard {
+  position: relative;
+  width: 100%;
+  max-width: 430px;
+  background: var(--admin-card-bg);
+  border: 1px solid var(--admin-border);
+  border-radius: 12px;
+  padding: 1rem;
+}
+
+.modalClose {
+  position: absolute;
+  right: 0.65rem;
+  top: 0.65rem;
+  border: 1px solid var(--admin-border);
+  background: transparent;
+  border-radius: 7px;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--admin-text-muted);
+  cursor: pointer;
+}
+
+.modalTitle {
+  margin: 0 0 0.75rem;
+  font-size: 0.98rem;
+  color: var(--admin-text);
+  font-weight: 800;
+}
+
+.modalLine {
+  margin: 0.25rem 0;
+  font-size: 0.82rem;
+  color: var(--admin-text);
+}
+
+.modalLabel {
+  display: block;
+  margin: 0.5rem 0 0.3rem;
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--admin-text-muted);
+}
+
+.modalInput {
+  width: 100%;
+  border-radius: 8px;
+  border: 1px solid var(--admin-border);
+  background: var(--admin-card-bg);
+  color: var(--admin-text);
+  padding: 0.5rem 0.6rem;
+  font-size: 0.82rem;
+  font-family: inherit;
+}
+
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 0.9rem;
+}
+
+.modalBtnSecondary {
+  border-radius: 8px;
+  border: 1px solid var(--admin-border);
+  background: var(--admin-card-bg);
+  color: var(--admin-text);
+  padding: 0.45rem 0.75rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.modalBtnPrimary {
+  border-radius: 8px;
+  border: 1px solid #1e3a5f;
+  background: #1e3a5f;
+  color: #fff;
+  padding: 0.45rem 0.75rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.modalBtnDanger {
+  background: #dc2626;
+  border-color: #dc2626;
+}
+
+/* ── Empty state ─────────────────────────────────────────────────────────── */
+.empty {
+  padding: 3.5rem 1.5rem;
+  text-align: center;
+  background: var(--admin-card-bg);
+  border-radius: 12px;
+  border: 1px solid var(--admin-border);
+}
+
+.emptyText {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--admin-text);
+  margin: 0 0 0.35rem;
+  font-family: 'Plus Jakarta Sans', 'DM Sans', sans-serif;
+}
+
+.emptySubtext {
+  font-size: 0.8rem;
+  color: var(--admin-text-muted);
+  margin: 0;
+  font-family: 'Plus Jakarta Sans', 'DM Sans', sans-serif;
+}

@@ -1,60 +1,79 @@
 // app/(auth)/reset-password/page.tsx
 'use client'
 
-import { useState } from 'react'
-import Link from 'next/link'
-import Image from 'next/image'
+import { useState, useMemo } from 'react'
+import Image                  from 'next/image'
+import Link                   from 'next/link'
+import { useRouter }          from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Lock, Eye, EyeOff, ArrowLeft, CheckCircle } from 'lucide-react'
+import { Lock, Eye, EyeOff, CheckCircle, AlertCircle } from 'lucide-react'
+import { MoleculeBackground }  from '@/animations/auth/MoleculeBackground'
+import { createClient }        from '@/lib/supabase/client'
+import { getPasswordStrength } from '@/lib/utils/auth/'
 import styles from '../auth.module.css'
 
-function getStrength(pw: string): null | 'weak' | 'fair' | 'good' | 'strong' {
-  if (!pw) return null
-  if (pw.length < 6) return 'weak'
-  if (pw.length < 10) return 'fair'
-  if (/[A-Z]/.test(pw) && /[0-9]/.test(pw) && pw.length >= 10) return 'strong'
-  return 'good'
-}
-
 export default function ResetPasswordPage() {
-  const [showPw,   setShowPw]   = useState(false)
-  const [showPw2,  setShowPw2]  = useState(false)
+  const router   = useRouter()
+  // Stable Supabase client for the lifetime of this page
+  const supabase = useMemo(() => createClient(), [])
+
   const [password, setPassword] = useState('')
   const [confirm,  setConfirm]  = useState('')
+  const [showPw,   setShowPw]   = useState(false)
+  const [showPw2,  setShowPw2]  = useState(false)
   const [loading,  setLoading]  = useState(false)
   const [done,     setDone]     = useState(false)
+  const [error,    setError]    = useState<string | null>(null)
 
-  const strength = getStrength(password)
-  const strengthClass = strength
-    ? styles[`strength${strength.charAt(0).toUpperCase()}${strength.slice(1)}`]
-    : ''
+  const strength = getPasswordStrength(password)
   const mismatch = confirm.length > 0 && password !== confirm
+
+  function strengthClass(s: ReturnType<typeof getPasswordStrength>): string {
+    if (!s) {return ''}
+    return (styles as Record<string, string>)[`strength${s.charAt(0).toUpperCase()}${s.slice(1)}`] ?? ''
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (mismatch) return
+
+    if (mismatch)             { setError("Passwords don't match."); return }
+    if (password.length < 8)  { setError('Password must be at least 8 characters.'); return }
+
     setLoading(true)
-    // TODO: supabase.auth.updateUser({ password })
-    // then redirect to /login
-    setTimeout(() => { setLoading(false); setDone(true) }, 1400)
+    setError(null)
+
+    const { error: authErr } = await supabase.auth.updateUser({ password })
+
+    setLoading(false)
+
+    if (authErr) {
+      setError(authErr.message)
+      return
+    }
+
+    setDone(true)
+    setTimeout(() => router.push('/login'), 2500)
   }
 
   return (
-    <div className={styles.authPage}>
-
-      {/* ── LEFT — FORM ── */}
-      <div className={styles.formPanel}>
+    <>
+      <MoleculeBackground />
+      <div className={styles.authPage}>
         <motion.div
-          className={styles.formInner}
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.45, ease: [0.4, 0, 0.2, 1] }}
+          className={styles.card}
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, ease: [0.34, 1.2, 0.64, 1] }}
         >
-          <div className={styles.formTopRow}>
-            <Image src="/images/veripraxis-logo.png" alt="VeriPraxis" width={120} height={34} priority />
-            <Link href="/login" className={styles.backLink}>
-              <ArrowLeft size={13} strokeWidth={2.5} /> Back to login
-            </Link>
+          <div className={styles.logoWrap}>
+            <Image
+              src="/images/veripraxis-logo.png"
+              alt="VeriPraxis"
+              height={44}
+              width={160}
+              className={styles.logoImg}
+              priority
+            />
           </div>
 
           <AnimatePresence mode="wait">
@@ -64,69 +83,90 @@ export default function ResetPasswordPage() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.3 }}
               >
-                <h1 className={styles.formTitle}>Set new password</h1>
-                <p className={styles.formSubtitle}>
+                <h1 className={styles.heading}>Set new password</h1>
+                <p className={styles.subheading}>
                   Choose a strong password to keep your account secure.
                 </p>
 
-                <form className={styles.form} onSubmit={handleSubmit}>
+                <AnimatePresence>
+                  {error && (
+                    <motion.div
+                      className={styles.errorBanner}
+                      style={{ marginBottom: '0.75rem' }}
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                    >
+                      <AlertCircle size={14} style={{ flexShrink: 0 }} />
+                      {error}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
 
+                <form className={styles.form} onSubmit={handleSubmit} noValidate>
                   {/* New password */}
                   <div className={styles.fieldGroup}>
-                    <label className={styles.label} htmlFor="password">New Password</label>
+                    <label className={styles.label} htmlFor="new-pw">New Password</label>
                     <div className={styles.inputWrap}>
                       <Lock size={15} strokeWidth={2} className={styles.inputIcon} />
                       <input
-                        id="password"
+                        id="new-pw"
+                        className={`${styles.input} ${styles.inputHasIcon}`}
                         type={showPw ? 'text' : 'password'}
-                        className={styles.input}
                         placeholder="Min. 8 characters"
                         value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
+                        onChange={(e) => { setPassword(e.target.value); setError(null) }}
                         autoComplete="new-password"
                       />
-                      <button type="button" className={styles.inputToggle} onClick={() => setShowPw(v => !v)}>
-                        {showPw ? <EyeOff size={15} strokeWidth={2} /> : <Eye size={15} strokeWidth={2} />}
+                      <button
+                        type="button"
+                        className={styles.inputToggle}
+                        onClick={() => setShowPw((v) => !v)}
+                        aria-label={showPw ? 'Hide password' : 'Show password'}
+                      >
+                        {showPw
+                          ? <EyeOff size={15} strokeWidth={2} />
+                          : <Eye   size={15} strokeWidth={2} />}
                       </button>
                     </div>
                     {strength && (
-                      <>
-                        <div className={`${styles.strengthRow} ${strengthClass}`}>
-                          {[...Array(4)].map((_, i) => <div key={i} className={styles.strengthBar} />)}
-                        </div>
-                        <div className={`${styles.strengthRow} ${strengthClass}`}>
-                          <span className={styles.strengthLabel}>
-                            {{ weak: 'Weak', fair: 'Fair', good: 'Good', strong: 'Strong' }[strength]}
-                          </span>
-                        </div>
-                      </>
+                      <div className={`${styles.strengthRow} ${strengthClass(strength)}`}>
+                        {[0, 1, 2, 3].map((i) => <div key={i} className={styles.strengthBar} />)}
+                        <span className={styles.strengthLabel}>
+                          {{ weak: 'Weak', fair: 'Fair', good: 'Good', strong: 'Strong' }[strength]}
+                        </span>
+                      </div>
                     )}
                   </div>
 
-                  {/* Confirm */}
+                  {/* Confirm password */}
                   <div className={styles.fieldGroup}>
-                    <label className={styles.label} htmlFor="confirm">Confirm Password</label>
+                    <label className={styles.label} htmlFor="confirm-pw">Confirm Password</label>
                     <div className={styles.inputWrap}>
                       <Lock size={15} strokeWidth={2} className={styles.inputIcon} />
                       <input
-                        id="confirm"
+                        id="confirm-pw"
+                        className={`${styles.input} ${styles.inputHasIcon} ${mismatch ? styles.inputError : ''}`}
                         type={showPw2 ? 'text' : 'password'}
-                        className={`${styles.input} ${mismatch ? styles.inputError : ''}`}
                         placeholder="Repeat your password"
                         value={confirm}
-                        onChange={(e) => setConfirm(e.target.value)}
-                        required
+                        onChange={(e) => { setConfirm(e.target.value); setError(null) }}
                         autoComplete="new-password"
                       />
-                      <button type="button" className={styles.inputToggle} onClick={() => setShowPw2(v => !v)}>
-                        {showPw2 ? <EyeOff size={15} strokeWidth={2} /> : <Eye size={15} strokeWidth={2} />}
+                      <button
+                        type="button"
+                        className={styles.inputToggle}
+                        onClick={() => setShowPw2((v) => !v)}
+                        aria-label={showPw2 ? 'Hide password' : 'Show password'}
+                      >
+                        {showPw2
+                          ? <EyeOff size={15} strokeWidth={2} />
+                          : <Eye   size={15} strokeWidth={2} />}
                       </button>
                     </div>
                     {mismatch && (
-                      <span className={styles.errorMsg}>Passwords don&apos;t match</span>
+                      <span className={styles.fieldError}>Passwords don&apos;t match.</span>
                     )}
                   </div>
 
@@ -143,51 +183,30 @@ export default function ResetPasswordPage() {
               </motion.div>
             ) : (
               <motion.div
-                key="success"
+                key="done"
+                className={styles.successWrap}
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4 }}
               >
-                <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1.5rem' }}>
-                  <CheckCircle size={52} color="#22c55e" strokeWidth={1.5} />
+                <div className={styles.successIcon}>
+                  <CheckCircle size={28} color="#22c55e" strokeWidth={2} />
                 </div>
-                <h1 className={styles.formTitle}>Password updated!</h1>
-                <p className={styles.formSubtitle}>
-                  Your password has been changed successfully.
-                  You can now log in with your new password.
+                <h1 className={styles.heading}>Password updated!</h1>
+                <p className={styles.subheading}>
+                  You can now sign in with your new password. Redirecting…
                 </p>
-                <Link href="/login" className={styles.submitBtn}>
-                  Go to Login
+                <Link
+                  href="/login"
+                  className={styles.submitBtn}
+                  style={{ marginTop: '0.5rem', textDecoration: 'none' }}
+                >
+                  Go to Sign In
                 </Link>
               </motion.div>
             )}
           </AnimatePresence>
         </motion.div>
       </div>
-
-      {/* ── RIGHT — PHOTO ── */}
-      <div className={styles.photoPannel}>
-        <Image
-          src="https://images.unsplash.com/photo-1507842217343-583bb7270b66?w=1200&q=85"
-          alt="Library resources"
-          fill
-          className={styles.photoImg}
-          priority
-        />
-        <div className={styles.photoOverlay} />
-        <div className={styles.photoContent}>
-          <div className={styles.photoTagline}>
-            Set a{' '}
-            <span className={styles.photoTaglineAccent}>strong</span>{' '}
-            new password.
-          </div>
-          <p className={styles.photoSub}>
-            Use at least 10 characters with uppercase letters
-            and numbers for maximum security.
-          </p>
-        </div>
-      </div>
-
-    </div>
+    </>
   )
 }

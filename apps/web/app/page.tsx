@@ -1,16 +1,33 @@
 // app/page.tsx
 'use client'
 
+import dynamic from 'next/dynamic'
 import Navbar from '@/components/layout/Navbar'
 import Hero from '@/components/sections/Hero'
-import Features from '@/components/sections/Features'
-import Programs from '@/components/sections/Programs'
-import Testimonials from '@/components/sections/Testimonials'
-import Pricing from '@/components/sections/Pricing'
-import FAQ from '@/components/sections/FAQ'
-import Footer from '@/components/layout/Footer'
 import styles from '@/app/page.module.css'
 import { useScrollReveal } from '@/lib/hooks/useScrollReveal'
+
+const SectionFallback = () => <div style={{ minHeight: '24rem' }} aria-hidden="true" />
+
+const Features = dynamic(() => import('@/components/sections/Features'), {
+  loading: SectionFallback,
+})
+
+const Programs = dynamic(() => import('@/components/sections/Programs'), {
+  loading: SectionFallback,
+})
+
+const Testimonials = dynamic(() => import('@/components/sections/Testimonials'), {
+  loading: SectionFallback,
+})
+
+const FAQ = dynamic(() => import('@/components/sections/FAQ'), {
+  loading: SectionFallback,
+})
+
+const Footer = dynamic(() => import('@/components/layout/Footer'), {
+  loading: () => null,
+})
 
 export default function Page() {
   const containerRef = useScrollReveal()
@@ -22,9 +39,8 @@ export default function Page() {
       <Features />
       <Programs />
       <Testimonials />
-      <Pricing />
       <FAQ />
       <Footer />
     </div>
-  )
+  ) 
 }
