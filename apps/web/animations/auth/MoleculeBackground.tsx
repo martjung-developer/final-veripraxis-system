@@ -191,7 +191,7 @@ export function MoleculeBackground() {
     }
 
     function onResize() {
-      const w = mount.clientWidth, h = mount.clientHeight
+      const w = mount!.clientWidth, h = mount!.clientHeight
       renderer.setSize(w, h)
       uniforms.uResolution.value.set(w, h)
     }

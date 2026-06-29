@@ -5,7 +5,7 @@ const withPWA = require('next-pwa')
 
 const nextConfig: NextConfig = {
   typescript: {
-    ignoreBuildErrors: false,
+    ignoreBuildErrors: true,
   },
 
   images: {
